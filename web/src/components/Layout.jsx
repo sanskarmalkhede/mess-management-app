@@ -28,7 +28,7 @@ export default function Layout({ children }) {
       <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-[var(--dark-900)] border-r border-[var(--dark-700)] transition-all duration-300 flex flex-col`}>
         {/* Logo */}
         <div className="p-4 border-b border-[var(--dark-700)] flex items-center justify-between">
-          {!collapsed && <span className="text-xl font-bold text-white">Mess Admin</span>}
+          {!collapsed && <span className="text-xl font-bold text-white">MessPro</span>}
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-2 rounded-lg hover:bg-[var(--dark-700)] text-[var(--dark-400)]"

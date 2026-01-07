@@ -29,7 +29,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-[var(--dark-950)] p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Mess Admin</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">MessPro</h1>
           <p className="text-[var(--dark-400)]">Super Admin Dashboard</p>
         </div>
 
