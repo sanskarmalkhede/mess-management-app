@@ -42,7 +42,7 @@ const PublicFeedScreen = ({ navigation }) => {
     try {
       let query = supabase
         .from('menu_posts')
-        .select('*, messes(name, areas(name))')
+        .select('*, messes(id, name, areas(name))')
         .gte('expiry_time', new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(50);

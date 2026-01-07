@@ -5,28 +5,47 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
-  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
-import { format, formatDistanceToNow, isPast } from 'date-fns';
+import { format } from 'date-fns';
 
 const MessDetailScreen = ({ route, navigation }) => {
-  const { mess } = route.params;
+  const { mess: partialMess } = route.params;
+  const [mess, setMess] = useState(partialMess);
   const [menuPosts, setMenuPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetchFullMessData();
     fetchMenuPosts();
-  }, [mess.id]);
+  }, [partialMess.id]);
+
+  // Fetch complete mess data including all fields
+  const fetchFullMessData = async () => {
+    try {
+      const { data } = await supabase
+        .from('messes')
+        .select('*, areas(name)')
+        .eq('id', partialMess.id)
+        .single();
+
+      if (data) {
+        setMess(data);
+      }
+    } catch (error) {
+      console.error('Error fetching mess data:', error);
+    }
+  };
 
   const fetchMenuPosts = async () => {
     try {
       const { data } = await supabase
         .from('menu_posts')
         .select('*')
-        .eq('mess_id', mess.id)
+        .eq('mess_id', partialMess.id)
         .gte('expiry_time', new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(10);
@@ -58,7 +77,7 @@ const MessDetailScreen = ({ route, navigation }) => {
       {/* Header */}
       <LinearGradient
         colors={['#7c3aed', '#9333ea']}
-        className="pt-4 pb-8 px-4 items-center"
+        className="pt-4 pb-6 px-4 items-center"
       >
         <View className="w-20 h-20 rounded-2xl bg-white/20 items-center justify-center mb-4">
           <Text className="text-white text-3xl font-bold">
@@ -73,30 +92,30 @@ const MessDetailScreen = ({ route, navigation }) => {
           <Ionicons name="location" size={14} color="white" />
           <Text className="text-white ml-1">{mess.areas?.name || 'Pune'}</Text>
         </View>
+
+        {/* Quick Action Buttons - Inside Header */}
+        <View className="flex-row w-full mt-4">
+          {mess.contact_number && (
+            <TouchableOpacity
+              onPress={callMess}
+              className="flex-1 bg-white/20 rounded-xl py-3 flex-row items-center justify-center mr-2"
+            >
+              <Ionicons name="call" size={20} color="white" />
+              <Text className="text-white font-medium ml-2">Call</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            onPress={openMaps}
+            className={`flex-1 bg-white/20 rounded-xl py-3 flex-row items-center justify-center ${mess.contact_number ? 'ml-2' : ''}`}
+          >
+            <Ionicons name="navigate" size={20} color="white" />
+            <Text className="text-white font-medium ml-2">Directions</Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
-      {/* Quick Actions */}
-      <View className="flex-row px-4 -mt-4">
-        {mess.contact_number && (
-          <TouchableOpacity
-            onPress={callMess}
-            className="flex-1 bg-success/20 rounded-xl py-3 flex-row items-center justify-center mr-2"
-          >
-            <Ionicons name="call" size={20} color="#22c55e" />
-            <Text className="text-success font-medium ml-2">Call</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          onPress={openMaps}
-          className="flex-1 bg-primary-600/20 rounded-xl py-3 flex-row items-center justify-center ml-2"
-        >
-          <Ionicons name="navigate" size={20} color="#a855f7" />
-          <Text className="text-primary-400 font-medium ml-2">Directions</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Info Cards */}
-      <View className="px-4 mt-6">
+      <View className="px-4 pt-4">
         {mess.speciality && (
           <View className="bg-dark-800 rounded-2xl p-4 mb-3">
             <View className="flex-row items-center mb-2">
@@ -131,7 +150,11 @@ const MessDetailScreen = ({ route, navigation }) => {
       {/* Today's Menu */}
       <View className="px-4 mt-4">
         <Text className="text-white text-lg font-semibold mb-3">Today's Menu</Text>
-        {menuPosts.length > 0 ? (
+        {loading ? (
+          <View className="bg-dark-800 rounded-2xl p-6 items-center">
+            <ActivityIndicator color="#a855f7" />
+          </View>
+        ) : menuPosts.length > 0 ? (
           menuPosts.map((post) => (
             <View key={post.id} className="bg-dark-800 rounded-2xl p-4 mb-3">
               <View className="flex-row items-center justify-between mb-3">
